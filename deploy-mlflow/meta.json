@@ -1,6 +1,6 @@
 {
   "model" : {
     "docker-image-name" : "luntaixia/cnn-summarizer-mlflow",
-    "version-tag" : "1.0.0"
+    "version-tag" : "1.0.1"
   }
 }

@@ -28,6 +28,7 @@ jobs: # define two jobs, CI and CD
           path: './deploy-mlflow/meta.json'
       
       - name: Build image
+        working-directory: deploy-mlflow
         run: |
-          echo "${{ steps.json_data.outputs.model.docker-image-name }}:${{ steps.json_data.outputs.model.version-tag }}"
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/${{ steps.json_data.outputs.model.docker-image-name }}:${{ steps.json_data.outputs.model.version-tag }} .
       
