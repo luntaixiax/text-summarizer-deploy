@@ -1,0 +1,17 @@
+version: '3'
+services:
+  model-mlflow:
+    build: ./deploy-mlflow
+    image: luntaixia/cnn-summarizer-mlflow
+    ports:
+      - 5003:5003
+
+  backend:
+    build: ./backend-fastapi
+    image: luntaixia/cnn-summarizer-backend
+    ports:
+      - 5000:5000
+    environment:
+      MODEL_URI: model-mlflow
+    depends_on:
+      - model-mlflow
