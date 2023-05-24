@@ -24,13 +24,13 @@ jobs: # define two jobs, CI and CD
         run: ls -l
 
       - name: read model version tag
-        id: yaml_data
-        uses: pietrobolcato/action-read-yaml@1.0.0  # read yaml prebuilt action
+        id: json_data
+        uses: juliangruber/read-file-action@v1  # read yaml prebuilt action
         with:
-          config: './deploy-mlflow/meta.yaml'
+          path: './deploy-mlflow/meta.json'
       
       - name: Build image
         run: |
           npm install js-yaml
-          echo ${{ secrets.DOCKERHUB_USERNAME }}/${{ steps.yaml_data.outputs['model.docker-image-name'] }}:${{ steps.yaml_data.outputs['model.version-tag'] }}
+          echo ${{ secrets.DOCKERHUB_USERNAME }}/${{ steps.json_data.outputs.content }}
       
