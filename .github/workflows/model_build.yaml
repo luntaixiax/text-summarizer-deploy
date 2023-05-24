@@ -31,5 +31,6 @@ jobs: # define two jobs, CI and CD
       
       - name: Build image
         run: |
-          echo ${{ secrets.DOCKERHUB_USERNAME }}/${{ steps.yaml_data.outputs['model']['docker-image-name'] }}:${{ steps.yaml_data.outputs['model']['version-tag'] }}
+          npm install js-yaml
+          echo ${{ secrets.DOCKERHUB_USERNAME }}/${{ steps.yaml_data.outputs['model.docker-image-name'] }}:${{ steps.yaml_data.outputs['model.version-tag'] }}
       
