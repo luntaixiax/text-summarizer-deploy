@@ -39,4 +39,7 @@ jobs: # define two jobs, CI and CD
         working-directory: deploy-mlflow
         run: |
           docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/${{ steps.model_nm.outputs.data }}:${{ steps.ver_tag.outputs.data }} .
+
+      - name: Push image
+        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ steps.model_nm.outputs.data }}:${{ steps.ver_tag.outputs.data }}
       
