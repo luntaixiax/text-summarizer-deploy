@@ -1,0 +1,55 @@
+version: '3'
+services:
+  model-mlflow:
+    build: ./deploy-mlflow
+    #image: luntaixia/cnn-summarizer-mlflow
+    ports:
+      - 5003:5003
+
+  backend-mlflow:
+    build: ./backend-fastapi
+    #image: luntaixia/cnn-summarizer-backend
+    ports:
+      - 5000:5000
+    environment:
+      MODEL_URI: model-mlflow
+    depends_on:
+      - model-mlflow
+
+  backend-standalone:
+    build: ./deploy-fastapi
+    #image: luntaixia/cnn-summarizer-local
+    ports:
+      - 8000:8000
+
+  mysql:
+    image: mysql:latest
+    volumes:
+      - /home/luntaixia/Downloads/mysql-storage:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=luntaixia
+    ports:
+      - 3306:3306
+    command: ['mysqld', '--character-set-server=utf8mb4', '--default-authentication-plugin=mysql_native_password']
+
+  monitoring:
+    build: ./monitoring
+    #image: luntaixia/cnn-summarizer-monitoring
+    volumes:
+      - ./secrets.toml:/app/.secrets/secrets.toml # for streamlit secrets
+    ports:
+      - 9020:9020
+    depends_on:
+      - mysql
+
+  frontend:
+    build: ./frontend-streamlit
+    #image: luntaixia/cnn-summarizer-frontend
+    ports:
+      - 8501:8501
+    volumes:
+      - ./secrets.toml:/app/.streamlit/secrets.toml # for streamlit secrets
+    depends_on:
+      - backend-mlflow
+      - backend-standalone
+      - monitoring

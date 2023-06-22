@@ -1,0 +1,12 @@
+arize==7.0.4
+arize[AutoEmbeddings, LLM_Evaluation]
+fastapi==0.97.0
+numpy==1.24.2
+pandas==1.4.4
+pydantic==1.10.6
+uvicorn==0.21.1
+mysql-connector-python==8.0.33
+SQLAlchemy==1.4.39
+SQLAlchemy_Utils==0.41.1
+tomli==2.0.1
+tqdm

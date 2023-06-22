@@ -1,0 +1,45 @@
+name: build text summarizer model with local serving
+on:
+  push: # will trigger workflow when push event
+    paths:
+      - 'deploy-fastapi/**' # will trigger when push to this path
+
+
+jobs: # define two jobs, CI and CD
+  # job1 - CI
+  model-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dockerhub Login
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      
+      - uses: actions/checkout@v3
+      
+      - name: list files
+        run: ls -l
+
+      - name: read model version tag
+        id: ver_tag
+        uses: jbutcher5/read-yaml@main  # read yaml prebuilt action
+        with:
+          file: './deploy-fastapi/meta.yaml'
+          key-path: '["model", "version-tag"]'
+
+      - name: read dockerhub model name
+        id: model_nm
+        uses: jbutcher5/read-yaml@main  # read yaml prebuilt action
+        with:
+          file: './deploy-fastapi/meta.yaml'
+          key-path: '["model", "docker-image-name"]'
+      
+      - name: Build image
+        working-directory: deploy-fastapi
+        run: |
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/${{ steps.model_nm.outputs.data }}:${{ steps.ver_tag.outputs.data }} .
+
+      - name: Push image
+        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ steps.model_nm.outputs.data }}:${{ steps.ver_tag.outputs.data }}
+      

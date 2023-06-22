@@ -1,0 +1,7 @@
+bokeh==2.4.3
+boto3==1.26.153
+numpy==1.24.2
+pandas==1.4.4
+Requests==2.31.0
+streamlit==1.22.0
+tomli==2.0.1

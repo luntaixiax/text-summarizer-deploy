@@ -9,7 +9,7 @@ import os
 if 'MODEL_URI' in os.environ:
     MODEL_URI = os.environ['MODEL_URI']
     if MODEL_URI == 'host':
-        MODEL_URI = '172.17.0.1.'  # docker access host ip
+        MODEL_URI = '172.17.0.1'  # docker access host ip
 else:
     MODEL_URI = 'localhost'
 
@@ -34,7 +34,8 @@ class ArtRefPair(BaseModel):
 
 @app.post("/article/summarize")  # path binding and HTTP method
 async def online_pred(article: Article) -> str:
-    r = await batch_pred(articles=Articles(**{'articles' : [article]}))
+    article = article.dict()
+    r = await batch_pred(articles=Articles(**{'articles' : [article['article']]}))
     return r[0]
             
 @app.post("/article/summarize_batch")  # path binding and HTTP method
@@ -47,7 +48,7 @@ async def batch_pred(articles: Articles) -> List[str]:
                 "dataframe_split": {
                     "columns": ["article"],
                     "data": [
-                        articles['articles']
+                        [a] for a in articles['articles']
                     ]
                 }
             },
