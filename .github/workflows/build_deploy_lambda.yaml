@@ -45,10 +45,10 @@ jobs: # define two jobs, CI and CD
       - name: Build image
         working-directory: deploy-lambda
         run: |
-          AWS_REGION=${{ secrets.AWS_REGION }}
-          AWS_ACCT_ID=${{ secrets.AWS_ACCT_ID }}
-          REPO_NAME=${{ steps.ecr_repo_nm.outputs.data }}
-          DOCKER_IMAGE_NAME=${{ secrets.DOCKERHUB_USERNAME }}/${{ steps.ecr_img_nm.outputs.data }}
+          echo "AWS_REGION=${{ secrets.AWS_REGION }}" >> "$GITHUB_ENV"
+          echo "AWS_ACCT_ID=${{ secrets.AWS_ACCT_ID }}" >> "$GITHUB_ENV"
+          echo "REPO_NAME=${{ steps.ecr_repo_nm.outputs.data }}" >> "$GITHUB_ENV"
+          echo "DOCKER_IMAGE_NAME=${{ secrets.DOCKERHUB_USERNAME }}/${{ steps.ecr_img_nm.outputs.data }}" >> "$GITHUB_ENV"
           
           docker build -t $DOCKER_IMAGE_NAME .
 
