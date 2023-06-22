@@ -5,6 +5,7 @@ services:
     #image: luntaixia/cnn-summarizer-mlflow
     ports:
       - 5003:5003
+    restart: on-failure
 
   backend-mlflow:
     build: ./backend-fastapi
@@ -15,12 +16,14 @@ services:
       MODEL_URI: model-mlflow
     depends_on:
       - model-mlflow
+    restart: on-failure
 
   backend-standalone:
     build: ./deploy-fastapi
     #image: luntaixia/cnn-summarizer-local
     ports:
       - 8000:8000
+    restart: on-failure
 
   mysql:
     image: mysql:latest
@@ -41,6 +44,24 @@ services:
       - 9020:9020
     depends_on:
       - mysql
+    restart: on-failure
+
+  grafana:
+    image: grafana/grafana-oss
+    container_name: grafana-server
+    restart: always
+    depends_on:
+      - mysql
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      #- GF_INSTALL_PLUGINS=grafana-worldmap-panel  # world map plugin
+    ports:
+      - '3000:3000'
+    volumes:
+      - /home/luntaixia/Downloads/other-storage/grafana_data:/var/lib/grafana
+    command: bash -c "docker login -u user -p password && /run.sh" # fix permission error using root user
+    user: "root:root"
 
   frontend:
     build: ./frontend-streamlit
@@ -53,3 +74,4 @@ services:
       - backend-mlflow
       - backend-standalone
       - monitoring
+    restart: on-failure
