@@ -70,7 +70,7 @@ jobs: # define two jobs, CI and CD
           aws-region: ${{ secrets.AWS_REGION }}
 
       - uses: actions/checkout@v3
-      
+
       - name: list files
         run: ls -l
 
@@ -97,4 +97,4 @@ jobs: # define two jobs, CI and CD
       - name: Update Lambda Function
         working-directory: deploy-lambda
         run: |
-          aws lambda update-function-code --function-name ${{ env.LAMBDA_NAME }} --region ${{ secrets.AWS_REGION }} --image-uri ${{ env.ECR_REPO_URI }}
+          aws lambda update-function-code --function-name ${{ env.LAMBDA_NAME }} --region ${{ secrets.AWS_REGION }} --image-uri ${{ env.ECR_REPO_URI }}:latest
