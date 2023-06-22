@@ -45,17 +45,16 @@ jobs: # define two jobs, CI and CD
       - name: Build image
         working-directory: deploy-lambda
         run: |
-          echo "AWS_REGION=${{ secrets.AWS_REGION }}" >> "$GITHUB_ENV"
-          echo "AWS_ACCT_ID=${{ secrets.AWS_ACCT_ID }}" >> "$GITHUB_ENV"
           echo "REPO_NAME=${{ steps.ecr_repo_nm.outputs.data }}" >> "$GITHUB_ENV"
           echo "DOCKER_IMAGE_NAME=${{ secrets.DOCKERHUB_USERNAME }}/${{ steps.ecr_img_nm.outputs.data }}" >> "$GITHUB_ENV"
+          echo "ECR_URI=${{ secrets.AWS_ACCT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com" >> "$GITHUB_ENV"
+          echo "ECR_REPO_URI=${{ secrets.AWS_ACCT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/$REPO_NAME" >> "$GITHUB_ENV"
           
-          docker build -t $DOCKER_IMAGE_NAME .
+          docker build -t ${{ env.DOCKER_IMAGE_NAME }} .
 
       - name: Push image to ECR
         working-directory: deploy-lambda
         run: |
-          aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
-          ECR_REPO_URI="$AWS_ACCT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$REPO_NAME"
-          docker tag $DOCKER_IMAGE_NAME:latest $ECR_REPO_URI:latest
-          docker push $ECR_REPO_URI:latest
+          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ env.ECR_URI }}
+          docker tag ${{ env.DOCKER_IMAGE_NAME }}:latest ${{ env.ECR_REPO_URI }}:latest
+          docker push ${{ env.ECR_REPO_URI }}:latest
