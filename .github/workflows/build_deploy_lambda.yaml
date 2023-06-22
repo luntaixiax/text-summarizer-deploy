@@ -7,7 +7,59 @@ on:
 
 jobs: # define two jobs, CI and CD
   # job1 - CI
-  model-build:
+  # model-build:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Configure AWS Credentials
+  #       uses: aws-actions/configure-aws-credentials@v1
+  #       with:
+  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  #         aws-region: ${{ secrets.AWS_REGION }}
+
+  #     - name: Dockerhub Login
+  #       uses: docker/login-action@v2
+  #       with:
+  #         username: ${{ secrets.DOCKERHUB_USERNAME }}
+  #         password: ${{ secrets.DOCKERHUB_TOKEN }}
+      
+  #     - uses: actions/checkout@v3
+      
+  #     - name: list files
+  #       run: ls -l
+
+  #     - name: Read docker image name for ECR
+  #       id: ecr_img_nm
+  #       uses: jbutcher5/read-yaml@main  # read yaml prebuilt action
+  #       with:
+  #         file: './deploy-lambda/config.yaml'
+  #         key-path: '["ecr", "image-name"]'
+
+  #     - name: Read repo name for ECR
+  #       id: ecr_repo_nm
+  #       uses: jbutcher5/read-yaml@main  # read yaml prebuilt action
+  #       with:
+  #         file: './deploy-lambda/config.yaml'
+  #         key-path: '["ecr", "repo-name"]'
+      
+  #     - name: Setup Env Var
+  #       working-directory: deploy-lambda
+  #       run: |
+  #         echo "REPO_NAME=${{ steps.ecr_repo_nm.outputs.data }}" >> "$GITHUB_ENV"
+  #         echo "DOCKER_IMAGE_NAME=${{ secrets.DOCKERHUB_USERNAME }}/${{ steps.ecr_img_nm.outputs.data }}" >> "$GITHUB_ENV"
+  #         echo "ECR_URI=${{ secrets.AWS_ACCT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com" >> "$GITHUB_ENV"
+  #         echo "ECR_REPO_URI=${{ secrets.AWS_ACCT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ steps.ecr_repo_nm.outputs.data }}" >> "$GITHUB_ENV"
+
+  #     - name: Build and Push image to ECR
+  #       working-directory: deploy-lambda
+  #       run: |
+  #         docker build -t ${{ env.DOCKER_IMAGE_NAME }} .
+  #         aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ env.ECR_URI }}
+  #         docker tag ${{ env.DOCKER_IMAGE_NAME }}:latest ${{ env.ECR_REPO_URI }}:latest
+  #         docker push ${{ env.ECR_REPO_URI }}:latest
+
+  # job2 - CD
+  update-lambda:
     runs-on: ubuntu-latest
     steps:
       - name: Configure AWS Credentials
@@ -17,23 +69,15 @@ jobs: # define two jobs, CI and CD
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Dockerhub Login
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-      
-      - uses: actions/checkout@v3
-      
       - name: list files
         run: ls -l
 
-      - name: Read docker image name for ECR
-        id: ecr_img_nm
+      - name: Read function name for Lambda
+        id: lambda_func_name
         uses: jbutcher5/read-yaml@main  # read yaml prebuilt action
         with:
           file: './deploy-lambda/config.yaml'
-          key-path: '["ecr", "image-name"]'
+          key-path: '["lambda", "function-name"]'
 
       - name: Read repo name for ECR
         id: ecr_repo_nm
@@ -41,19 +85,14 @@ jobs: # define two jobs, CI and CD
         with:
           file: './deploy-lambda/config.yaml'
           key-path: '["ecr", "repo-name"]'
-      
+
       - name: Setup Env Var
         working-directory: deploy-lambda
         run: |
-          echo "REPO_NAME=${{ steps.ecr_repo_nm.outputs.data }}" >> "$GITHUB_ENV"
-          echo "DOCKER_IMAGE_NAME=${{ secrets.DOCKERHUB_USERNAME }}/${{ steps.ecr_img_nm.outputs.data }}" >> "$GITHUB_ENV"
-          echo "ECR_URI=${{ secrets.AWS_ACCT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com" >> "$GITHUB_ENV"
+          echo "LAMBDA_NAME=${{ steps.lambda_func_name.outputs.data }}" >> "$GITHUB_ENV"
           echo "ECR_REPO_URI=${{ secrets.AWS_ACCT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ steps.ecr_repo_nm.outputs.data }}" >> "$GITHUB_ENV"
 
-      - name: Build and Push image to ECR
+      - name: Update Lambda Function
         working-directory: deploy-lambda
         run: |
-          docker build -t ${{ env.DOCKER_IMAGE_NAME }} .
-          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ env.ECR_URI }}
-          docker tag ${{ env.DOCKER_IMAGE_NAME }}:latest ${{ env.ECR_REPO_URI }}:latest
-          docker push ${{ env.ECR_REPO_URI }}:latest
+          aws lambda update-function-code --function-name ${{ env.LAMBDA_NAME }} --region ${{ secrets.AWS_REGION }} --image-uri ${{ env.ECR_REPO_URI }}

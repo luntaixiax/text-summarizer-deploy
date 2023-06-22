@@ -5,4 +5,4 @@ ecr:
 lambda:
   function-name: cnn-summarizer
 
-pseudo-version: "1.0.1"
+pseudo-version: "1.0.0"
