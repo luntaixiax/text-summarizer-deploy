@@ -42,19 +42,18 @@ jobs: # define two jobs, CI and CD
           file: './deploy-lambda/config.yaml'
           key-path: '["ecr", "repo-name"]'
       
-      - name: Build image
+      - name: Setup Env Var
         working-directory: deploy-lambda
         run: |
           echo "REPO_NAME=${{ steps.ecr_repo_nm.outputs.data }}" >> "$GITHUB_ENV"
           echo "DOCKER_IMAGE_NAME=${{ secrets.DOCKERHUB_USERNAME }}/${{ steps.ecr_img_nm.outputs.data }}" >> "$GITHUB_ENV"
           echo "ECR_URI=${{ secrets.AWS_ACCT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com" >> "$GITHUB_ENV"
           echo "ECR_REPO_URI=${{ secrets.AWS_ACCT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/$REPO_NAME" >> "$GITHUB_ENV"
-          
-          docker build -t ${{ env.DOCKER_IMAGE_NAME }} .
 
-      - name: Push image to ECR
+      - name: Build and Push image to ECR
         working-directory: deploy-lambda
         run: |
+          docker build -t ${{ env.DOCKER_IMAGE_NAME }} .
           aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ env.ECR_URI }}
           docker tag ${{ env.DOCKER_IMAGE_NAME }}:latest ${{ env.ECR_REPO_URI }}:latest
           docker push ${{ env.ECR_REPO_URI }}:latest
