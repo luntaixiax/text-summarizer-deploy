@@ -48,7 +48,7 @@ jobs: # define two jobs, CI and CD
           echo "REPO_NAME=${{ steps.ecr_repo_nm.outputs.data }}" >> "$GITHUB_ENV"
           echo "DOCKER_IMAGE_NAME=${{ secrets.DOCKERHUB_USERNAME }}/${{ steps.ecr_img_nm.outputs.data }}" >> "$GITHUB_ENV"
           echo "ECR_URI=${{ secrets.AWS_ACCT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com" >> "$GITHUB_ENV"
-          echo "ECR_REPO_URI=${{ secrets.AWS_ACCT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/$REPO_NAME" >> "$GITHUB_ENV"
+          echo "ECR_REPO_URI=${{ secrets.AWS_ACCT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ steps.ecr_repo_nm.outputs.data }}" >> "$GITHUB_ENV"
 
       - name: Build and Push image to ECR
         working-directory: deploy-lambda
