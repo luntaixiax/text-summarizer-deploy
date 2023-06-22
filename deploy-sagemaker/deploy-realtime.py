@@ -1,7 +1,6 @@
 import boto3
 import sagemaker
 from sagemaker.huggingface.model import HuggingFaceModel
-from sagemaker.pytorch import PyTorchModel
 import os
 import time
 
@@ -24,4 +23,4 @@ predictor = model.deploy(
    instance_type="ml.m5.xlarge",
    endpoint_name = "text-summarizer-" + time.strftime("%Y-%m-%d-%H-%M-%S", time.gmtime())
 )
-print("Succesfully deployed to Endpoint: ", predictor.endpoint_name)
+print("Succesfully deployed to Realtime Endpoint: ", predictor.endpoint_name)

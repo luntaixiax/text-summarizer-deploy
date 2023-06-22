@@ -27,4 +27,5 @@ rm -r model;
 # deploy to sagemaker
 export REGION='ca-central-1';
 export SM_ROLE_NAME='sagemaker-fullaccess';
-python deploy-sagemaker.py;
+python deploy-serverless.py;
+#python deploy-realtime.py;
