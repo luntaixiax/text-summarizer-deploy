@@ -1,0 +1,61 @@
+name: build text summarizer model with aws lambda
+on:
+  push: # will trigger workflow when push event
+    paths:
+      - 'deploy-lambda/**' # will trigger when push to this path
+
+
+jobs: # define two jobs, CI and CD
+  # job1 - CI
+  model-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Dockerhub Login
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      
+      - uses: actions/checkout@v3
+      
+      - name: list files
+        run: ls -l
+
+      - name: Read docker image name for ECR
+        id: ecr_img_nm
+        uses: jbutcher5/read-yaml@main  # read yaml prebuilt action
+        with:
+          file: './deploy-lambda/config.yaml'
+          key-path: '["ecr", "image-name"]'
+
+      - name: Read repo name for ECR
+        id: ecr_repo_nm
+        uses: jbutcher5/read-yaml@main  # read yaml prebuilt action
+        with:
+          file: './deploy-lambda/config.yaml'
+          key-path: '["ecr", "repo-name"]'
+      
+      - name: Build image
+        working-directory: deploy-lambda
+        run: |
+          AWS_REGION=${{ secrets.AWS_REGION }}
+          AWS_ACCT_ID=${{ secrets.AWS_ACCT_ID }}
+          REPO_NAME=${{ steps.ecr_repo_nm.outputs.data }}
+          DOCKER_IMAGE_NAME=${{ secrets.DOCKERHUB_USERNAME }}/${{ steps.ecr_img_nm.outputs.data }}
+          
+          docker build -t $DOCKER_IMAGE_NAME .
+
+      - name: Push image to ECR
+        working-directory: deploy-lambda
+        run: |
+          aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+          ECR_REPO_URI="$AWS_ACCT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$REPO_NAME"
+          docker tag $DOCKER_IMAGE_NAME:latest $ECR_REPO_URI:latest
+          docker push $ECR_REPO_URI:latest

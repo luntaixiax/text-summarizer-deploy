@@ -1,0 +1,6 @@
+ecr:
+  image-name: cnn-summarizer-lambda
+  repo-name: cnn-summarizer
+
+lambda:
+  function-name: cnn-summarizer
