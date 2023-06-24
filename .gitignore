@@ -5,3 +5,4 @@ __pycache__
 frontend-streamlit/.streamlit/*
 monitoring/.secrets/*
 secrets.toml
+pipeline-batch/logs

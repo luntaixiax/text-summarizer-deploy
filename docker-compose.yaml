@@ -33,7 +33,11 @@ services:
       - MYSQL_ROOT_PASSWORD=luntaixia
     ports:
       - 3306:3306
-    command: ['mysqld', '--character-set-server=utf8mb4', '--default-authentication-plugin=mysql_native_password']
+    command:
+      --character-set-server=utf8mb4
+      --default-authentication-plugin=mysql_native_password
+      --local-infile=1
+      --secure-file-priv=""
 
   monitoring:
     build: ./monitoring
