@@ -38,7 +38,7 @@ jobs: # define two jobs, CI and CD
       - name: Build and push image
         working-directory: frontend-streamlit
         run: |
-          model_hub_nm = ${{ secrets.DOCKERHUB_USERNAME }}/${{ steps.model_nm.outputs.data }}
+          model_hub_nm=${{ secrets.DOCKERHUB_USERNAME }}/${{ steps.model_nm.outputs.data }}
           docker build -t ${model_hub_nm}:${{ steps.ver_tag.outputs.data }} .
           docker tag ${model_hub_nm}:${{ steps.ver_tag.outputs.data }} ${model_hub_nm}:latest
 
