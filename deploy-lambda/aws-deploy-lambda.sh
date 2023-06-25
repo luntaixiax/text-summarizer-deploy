@@ -1,10 +1,9 @@
-AWS_REGION=ca-central-1
-AWS_ACCT_ID=981401473042
 REPO_NAME="cnn-summarizer"
 LAMBDA_NAME="cnn-summarizer"
 DOCKER_IMAGE_NAME="luntaixia/cnn-summarizer-lambda"
 ROLE_NAME="lambda-ex"  # TODO: update this
-
+AWS_REGION=$(aws configure get region)
+AWS_ACCT_ID=$(aws sts get-caller-identity | jq '.UserId') # need to install jq: sudo apt-get install jq
 
 ECR_REPO_URI="$AWS_ACCT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$REPO_NAME"
 

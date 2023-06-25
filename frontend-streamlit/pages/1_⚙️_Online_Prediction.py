@@ -146,7 +146,7 @@ if 'online_pred_summ' not in st.session_state:
 #     st.session_state['uploaded_pairs'] = pd.DataFrame()
 
 
-tabs = st.tabs(['Online Prediction', 'Batch Prediction'])
+tabs = st.tabs(['Single Prediction', 'Batch Prediction'])
 
 with tabs[0]:
     text = st.text_area('Input your News here', value="", height=250, 

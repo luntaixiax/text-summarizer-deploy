@@ -284,7 +284,7 @@ def log_summ(article: str, summ: str, target: str, model_source: str = 'Other', 
 
 
 if __name__ == '__main__':
-    ENDPOINT = 'https://tnr120ix54.execute-api.ca-central-1.amazonaws.com'
+    ENDPOINT = ''
     hlb = HandlerLambdaBackend(endpoint=ENDPOINT)
     print(hlb.summarize_batch(
         articles=["One of the key ideas behind why you use instruction style prompts is that you can steer the model towards what you define as your goal state output, vs what the model, a user, or a different engineer believes it is.",
