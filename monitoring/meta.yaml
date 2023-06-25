@@ -1,3 +1,3 @@
 model:
   docker-image-name: cnn-summarizer-monitoring
-  version-tag: 1.0.1
+  version-tag: 1.0.0

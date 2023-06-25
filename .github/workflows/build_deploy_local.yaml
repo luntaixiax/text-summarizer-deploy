@@ -43,5 +43,5 @@ jobs: # define two jobs, CI and CD
           docker tag ${model_hub_nm}:${{ steps.ver_tag.outputs.data }} ${model_hub_nm}:latest
 
           docker push ${model_hub_nm}:${{ steps.ver_tag.outputs.data }}
-          docker push -f ${model_hub_nm}:latest
+          docker push ${model_hub_nm}:latest
       

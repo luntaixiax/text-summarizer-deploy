@@ -28,7 +28,7 @@ services:
   mysql:
     image: mysql:latest
     volumes:
-      - /home/luntaixia/Downloads/mysql-storage:/var/lib/mysql
+      - ${VOLUME_MAPPING_PATH}/mysql-storage:/var/lib/mysql
     environment:
       - MYSQL_ROOT_PASSWORD=luntaixia
     ports:
@@ -44,7 +44,7 @@ services:
     image: luntaixia/cnn-summarizer-monitoring
     volumes:
       - ./secrets.toml:/app/.secrets/secrets.toml # for streamlit secrets
-      - ./samples/summarize_sample.parquet:/app/sample/summarize_sample.parquet
+      - ./samples:/app/sample # for loading samples
     ports:
       - 9020:9020
     depends_on:
@@ -64,7 +64,7 @@ services:
     ports:
       - '3000:3000'
     volumes:
-      - /home/luntaixia/Downloads/other-storage/grafana_data:/var/lib/grafana
+      - ${VOLUME_MAPPING_PATH}/grafana_data:/var/lib/grafana
     command: bash -c "docker login -u user -p password && /run.sh" # fix permission error using root user
     user: "root:root"
 

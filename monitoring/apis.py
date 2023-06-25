@@ -50,7 +50,7 @@ def init_db():
     # create tables
     Base.metadata.create_all(MYSQL_CONF.engine)
 
-    # load samples
+    # load samples for summarize_sample table
     try:
         samples = pd.read_parquet("sample/summarize_sample.parquet")
         MYSQL_DB.insert_pd_df(
@@ -63,6 +63,34 @@ def init_db():
         print("Sample file not found: sample/summarize_sample.parquet")
     except Exception as e:
         print("Save data failed: " + e)
+
+    # load samples for summarize_log table
+    try:
+        df = pd.read_parquet("sample/summarize_log.parquet")
+        df['prediction_ts'] = pd.to_datetime(df['prediction_ts'])
+
+        start_dt = datetime.datetime.now() + datetime.timedelta(hours=2)
+        start_dt = start_dt.replace(hour=0, minute=0, second=0, microsecond=0)
+        num_samples = len(df) # make sure this number is larger than the actual sample size
+
+        rng = np.random.default_rng()
+        intervals = rng.exponential(scale=360, size=num_samples).round(0)
+        cum_intervals = intervals.cumsum()
+        for i in range(num_samples):
+            df.loc[i, 'prediction_ts'] = start_dt - datetime.timedelta(seconds=cum_intervals[i])
+        
+        MYSQL_DB.insert_pd_df(
+            tablename = 'summarize_log', 
+            df = df, 
+            schema = 'summarizer'
+        )
+
+    except FileNotFoundError as e:
+        print("Sample file not found: sample/summarize_log.parquet")
+    except Exception as e:
+        print("Save data failed: " + e)
+
+
 
 def get_sample_pair() -> Tuple[str, str]:
     sql = """
