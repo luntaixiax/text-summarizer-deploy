@@ -1,3 +1,4 @@
+https://download.pytorch.org/whl/cpu/torch-2.0.1%2Bcpu-cp39-cp39-linux_x86_64.whl
 arize==7.0.4
 arize[AutoEmbeddings, LLM_Evaluation]
 fastapi==0.97.0
@@ -10,3 +11,4 @@ SQLAlchemy==1.4.39
 SQLAlchemy_Utils==0.41.1
 tomli==2.0.1
 tqdm
+arrow==1.2.2

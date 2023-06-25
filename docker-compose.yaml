@@ -1,15 +1,15 @@
 version: '3'
 services:
   model-mlflow:
-    build: ./deploy-mlflow
-    #image: luntaixia/cnn-summarizer-mlflow
+    #build: ./deploy-mlflow
+    image: luntaixia/cnn-summarizer-mlflow
     ports:
       - 5003:5003
     restart: on-failure
 
   backend-mlflow:
-    build: ./backend-fastapi
-    #image: luntaixia/cnn-summarizer-backend
+    #build: ./backend-fastapi
+    image: luntaixia/cnn-summarizer-backend
     ports:
       - 5000:5000
     environment:
@@ -19,8 +19,8 @@ services:
     restart: on-failure
 
   backend-standalone:
-    build: ./deploy-fastapi
-    #image: luntaixia/cnn-summarizer-local
+    #build: ./deploy-fastapi
+    image: luntaixia/cnn-summarizer-local
     ports:
       - 8000:8000
     restart: on-failure
@@ -40,10 +40,11 @@ services:
       --secure-file-priv=""
 
   monitoring:
-    build: ./monitoring
-    #image: luntaixia/cnn-summarizer-monitoring
+    #build: ./monitoring
+    image: luntaixia/cnn-summarizer-monitoring
     volumes:
       - ./secrets.toml:/app/.secrets/secrets.toml # for streamlit secrets
+      - ./samples/summarize_sample.parquet:/app/sample/summarize_sample.parquet
     ports:
       - 9020:9020
     depends_on:
@@ -68,8 +69,8 @@ services:
     user: "root:root"
 
   frontend:
-    build: ./frontend-streamlit
-    #image: luntaixia/cnn-summarizer-frontend
+    #build: ./frontend-streamlit
+    image: luntaixia/cnn-summarizer-frontend
     ports:
       - 8501:8501
     volumes:

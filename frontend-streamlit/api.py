@@ -12,18 +12,21 @@ import tomli
 with open(".streamlit/secrets.toml", mode="rb") as fp:
     SECRETS = tomli.load(fp)
 
+
 class ModelException(Exception):
     pass
+
 
 class NotSupportedFunctionError(Exception):
     pass
 
-def post_req(url:str, params = None, data: dict = None) -> requests.Response:
+
+def post_req(url: str, params=None, data: dict = None) -> requests.Response:
     headers = {
         "Content-type": "application/json",
     }
     try:
-        r = requests.post(url, params = params, json=data, headers=headers)
+        r = requests.post(url, params=params, json=data, headers=headers)
     except Exception as e:
         print("error happen here:\n", e)
         raise ModelException(f"🥹 {str(e)}")
@@ -33,12 +36,14 @@ def post_req(url:str, params = None, data: dict = None) -> requests.Response:
             return r
         else:
             print("request code is not 200")
-            raise ModelException("🥹 Model does not seem to be working at this time, try again later!")
-        
-def get_req(url:str, params = None) -> requests.Response:
+            raise ModelException(
+                "🥹 Model does not seem to be working at this time, try again later!")
+
+
+def get_req(url: str, params=None) -> requests.Response:
     headers = {"Content-type": "application/json"}
     try:
-        r = requests.get(url, params = params, headers=headers)
+        r = requests.get(url, params=params, headers=headers)
     except Exception as e:
         print("error happen here:\n", e)
         raise ModelException(f"🥹 {str(e)}")
@@ -48,7 +53,8 @@ def get_req(url:str, params = None) -> requests.Response:
             return r.json()
         else:
             print("request code is not 200")
-            raise ModelException("🥹 Model does not seem to be working at this time, try again later!")
+            raise ModelException(
+                "🥹 Model does not seem to be working at this time, try again later!")
 
 
 class HandlerMlflowBackend:
@@ -58,23 +64,24 @@ class HandlerMlflowBackend:
     def summarize(self, article: str) -> str:
         url = f"{self.endpoint}/article/summarize"
         data = dict(article=article)
-        r = post_req(url = url, data = data)
+        r = post_req(url=url, data=data)
         return r.json()
-        
+
     def summarize_batch(self, articles: List[str]) -> List[str]:
         url = f"{self.endpoint}/article/summarize_batch"
         data = dict(articles=articles)
-        r = post_req(url = url, data = data)
+        r = post_req(url=url, data=data)
         return r.json()
-        
+
     def scores(self, articles: List[str], targets: List[str]) -> Dict[str, float]:
         url = f"{self.endpoint}/model/score"
-        data = dict(articles = articles, targets = targets)
-        r = post_req(url = url, data = data)
+        data = dict(articles=articles, targets=targets)
+        r = post_req(url=url, data=data)
         return r.json()
-        
+
+
 class HandlerLocalBackend(HandlerMlflowBackend):
-    def __init__(self, endpoint: str, num_beans:int = 8, temperature: float = 1.0) -> None:
+    def __init__(self, endpoint: str, num_beans: int = 8, temperature: float = 1.0) -> None:
         self.endpoint = endpoint
         self.num_beans = num_beans
         self.temperature = temperature
@@ -82,24 +89,26 @@ class HandlerLocalBackend(HandlerMlflowBackend):
 
     def summarize(self, article: str) -> str:
         url = f"{self.endpoint}/article/summarize"
-        data = dict(article=dict(article = article), config = self.config)
-        r = post_req(url = url, data = data)
+        data = dict(article=dict(article=article), config=self.config)
+        r = post_req(url=url, data=data)
         return r.json()
-        
+
     def summarize_batch(self, articles: List[str]) -> List[str]:
         url = f"{self.endpoint}/article/summarize_batch"
-        data = dict(articles=dict(articles=articles), config = self.config)
-        r = post_req(url = url, data = data)
+        data = dict(articles=dict(articles=articles), config=self.config)
+        r = post_req(url=url, data=data)
         return r.json()
-        
+
     def scores(self, articles: List[str], targets: List[str]) -> Dict[str, float]:
         url = f"{self.endpoint}/model/score"
-        data = dict(pairs = dict(articles = articles, targets = targets), config = self.config)
-        r = post_req(url = url, data = data)
+        data = dict(pairs=dict(articles=articles,
+                    targets=targets), config=self.config)
+        r = post_req(url=url, data=data)
         return r.json()
-    
+
+
 class HandlerLambdaBackend(HandlerMlflowBackend):
-    def __init__(self, endpoint: str, num_beans:int = 8, temperature: float = 1.0) -> None:
+    def __init__(self, endpoint: str, num_beans: int = 8, temperature: float = 1.0) -> None:
         self.endpoint = endpoint
         self.num_beans = num_beans
         self.temperature = temperature
@@ -108,28 +117,30 @@ class HandlerLambdaBackend(HandlerMlflowBackend):
     def summarize(self, article: str) -> str:
         url = f"{self.endpoint}/online-predict"
         data = dict(article=article, **self.config)
-        r = post_req(url = url, data = data)
+        r = post_req(url=url, data=data)
         return r.text
-        
+
     def summarize_batch(self, articles: List[str]) -> List[str]:
         url = f"{self.endpoint}/batch-predict"
         data = dict(articles=articles, **self.config)
-        r = post_req(url = url, data = data)
+        r = post_req(url=url, data=data)
         return r.json()
-        
+
     def scores(self, articles: List[str], targets: List[str]) -> Dict[str, float]:
         url = f"{self.endpoint}/score"
-        data = dict(articles = articles, targets = targets, **self.config)
-        r = post_req(url = url, data = data)
+        data = dict(articles=articles, targets=targets, **self.config)
+        r = post_req(url=url, data=data)
         return r.json()
-    
+
+
 class HandlerSageMakerBackend:
     def __init__(self, endpoint_name: str = None) -> None:
         import boto3
 
         secrets = SECRETS['sagemaker']
 
-        self.endpoint_name = endpoint_name if endpoint_name is not None else secrets['sm_endpoint_name']
+        self.endpoint_name = endpoint_name if endpoint_name is not None else secrets[
+            'sm_endpoint_name']
         self.runtime = boto3.client(
             'runtime.sagemaker',
             aws_access_key_id=secrets['aws_access_key_id'],
@@ -143,8 +154,8 @@ class HandlerSageMakerBackend:
         }
         try:
             response = self.runtime.invoke_endpoint(
-                EndpointName = self.endpoint_name, 
-                Body=json.dumps(prompt), 
+                EndpointName=self.endpoint_name,
+                Body=json.dumps(prompt),
                 ContentType="application/json"
             )
         except Exception as e:
@@ -153,12 +164,14 @@ class HandlerSageMakerBackend:
             r = response["Body"].read()
             r = json.loads(r)
             return r[0]
-    
+
     def summarize_batch(self, articles: List[str]) -> List[str]:
-        raise NotSupportedFunctionError("🥹 This Model Type does not support batch summarization, too expensive!")
-    
+        raise NotSupportedFunctionError(
+            "🥹 This Model Type does not support batch summarization, too expensive!")
+
     def scores(self, articles: List[str], targets: List[str]) -> Dict[str, float]:
-        raise NotSupportedFunctionError("🥹 This Model Type does not support batch summarization, too expensive!")
+        raise NotSupportedFunctionError(
+            "🥹 This Model Type does not support batch summarization, too expensive!")
 
 # def read_batch_pred_articles(buffer: StringIO) -> List[str]:
 #     return buffer.readlines()
@@ -172,6 +185,7 @@ def read_batch_pred_articles(buf) -> Tuple[List[str], List[str]]:
         summs = None
     return articles, summs
 
+
 def write_batch_pred(summs: List[str]) -> str:
     # s = StringIO()
     # for summ in summs:
@@ -179,78 +193,91 @@ def write_batch_pred(summs: List[str]) -> str:
     # return s
     return '\n'.join(summs)
 
+
 def get_upload_pair(buf) -> pd.DataFrame:
     sample = pd.read_csv(buf, usecols=['article', 'summ'])
     return sample
 
+
 MONITOR_CONFIG = SECRETS['monitoring']
 MONITOR_ENDPOINT = f"http://{MONITOR_CONFIG['ip']}:{MONITOR_CONFIG['port']}"
 
+def init_db():
+    r = post_req(
+        url=f"{MONITOR_ENDPOINT}/db/init",
+    )
+    
 def get_sample_article() -> Tuple[str, str]:
     r = get_req(
-        url = f"{MONITOR_ENDPOINT}/sample/pair",
-        params = None
+        url=f"{MONITOR_ENDPOINT}/sample/pair",
+        params=None
     )
     return r['article'], r['summ']
 
+
 def get_sample_pair(num_sample: int = 10) -> pd.DataFrame:
     r = get_req(
-        url = f"{MONITOR_ENDPOINT}/sample/pairs",
-        params = {'num_sample' : num_sample}
+        url=f"{MONITOR_ENDPOINT}/sample/pairs",
+        params={'num_sample': num_sample}
     )
     return pd.DataFrame(r)
+
 
 def get_pred_hist(num_record: int) -> pd.DataFrame:
     r = get_req(
-        url = f"{MONITOR_ENDPOINT}/history/list",
-        params = {'num_record' : num_record}
+        url=f"{MONITOR_ENDPOINT}/history/list",
+        params={'num_record': num_record}
     )
     return pd.DataFrame(r)
 
-def get_pred_stat(cur_ts: datetime, last_ts: datetime, freq:str = 'Day') -> pd.DataFrame:
+
+def get_pred_stat(cur_ts: datetime, last_ts: datetime, freq: str = 'Day') -> pd.DataFrame:
     r = get_req(
-        url = f"{MONITOR_ENDPOINT}/history/count",
-        params = {
-            'cur_ts' : cur_ts.strftime("%Y-%m-%d %H:%M:%S"),
-            'last_ts' : last_ts.strftime("%Y-%m-%d %H:%M:%S"),
-            'freq' : freq
+        url=f"{MONITOR_ENDPOINT}/history/count",
+        params={
+            'cur_ts': cur_ts.strftime("%Y-%m-%d %H:%M:%S"),
+            'last_ts': last_ts.strftime("%Y-%m-%d %H:%M:%S"),
+            'freq': freq
         }
     )
     return pd.DataFrame.from_records(r)
 
-def get_score_ts(cur_ts: datetime, last_ts: datetime, freq:str = 'Day') -> pd.DataFrame:
+
+def get_score_ts(cur_ts: datetime, last_ts: datetime, freq: str = 'Day') -> pd.DataFrame:
     r = get_req(
-        url = f"{MONITOR_ENDPOINT}/history/score",
-        params = {
-            'cur_ts' : cur_ts.strftime("%Y-%m-%d %H:%M:%S"),
-            'last_ts' : last_ts.strftime("%Y-%m-%d %H:%M:%S"),
-            'freq' : freq
+        url=f"{MONITOR_ENDPOINT}/history/score",
+        params={
+            'cur_ts': cur_ts.strftime("%Y-%m-%d %H:%M:%S"),
+            'last_ts': last_ts.strftime("%Y-%m-%d %H:%M:%S"),
+            'freq': freq
         }
     )
     return pd.DataFrame.from_records(r)
 
-def log_summs(articles: List[str], summs: List[str], targets: List[str], model_source:str = 'Other', send_arize: bool = False) -> int:
+
+def log_summs(articles: List[str], summs: List[str], targets: List[str], model_source: str = 'Other', send_arize: bool = False) -> int:
     r = post_req(
-        url = f"{MONITOR_ENDPOINT}/log/batch",
-        data = dict(
-            articles = articles,
-            summs = summs,
-            targets = targets,
-            model_source = model_source,
-            send_arize = send_arize
+        url=f"{MONITOR_ENDPOINT}/log/batch",
+        data=dict(
+            articles=articles,
+            summs=summs,
+            targets=targets,
+            model_source=model_source,
+            send_arize=send_arize
         )
     )
     return r.json()
 
-def log_summ(article: str, summ: str, target: str, model_source:str = 'Other', send_arize: bool = False):
+
+def log_summ(article: str, summ: str, target: str, model_source: str = 'Other', send_arize: bool = False):
     r = post_req(
-        url = f"{MONITOR_ENDPOINT}/log/online",
-        data = dict(
+        url=f"{MONITOR_ENDPOINT}/log/online",
+        data=dict(
             article=article,
-            summ = summ,
-            target = target,
-            model_source = model_source,
-            send_arize = send_arize
+            summ=summ,
+            target=target,
+            model_source=model_source,
+            send_arize=send_arize
         )
     )
     return r.json()
@@ -260,10 +287,10 @@ if __name__ == '__main__':
     ENDPOINT = 'https://tnr120ix54.execute-api.ca-central-1.amazonaws.com'
     hlb = HandlerLambdaBackend(endpoint=ENDPOINT)
     print(hlb.summarize_batch(
-        articles = ["One of the key ideas behind why you use instruction style prompts is that you can steer the model towards what you define as your goal state output, vs what the model, a user, or a different engineer believes it is.",
-                    "One of the key ideas behind why you use instruction style prompts is that you can steer the model towards what you define as your goal state output, vs what the model, a user, or a different engineer believes it is."]
-        ))
-    
+        articles=["One of the key ideas behind why you use instruction style prompts is that you can steer the model towards what you define as your goal state output, vs what the model, a user, or a different engineer believes it is.",
+                  "One of the key ideas behind why you use instruction style prompts is that you can steer the model towards what you define as your goal state output, vs what the model, a user, or a different engineer believes it is."]
+    ))
+
     # articles = ["One of the key ideas behind why you use instruction style prompts is that you can steer the model towards what you define as your goal state output, vs what the model, a user, or a different engineer believes it is."]
     # url = f"{ENDPOINT}/batch-predict"
     # data = dict(articles=articles, num_beans=10, temperature=1.0)
@@ -274,7 +301,7 @@ if __name__ == '__main__':
     # print(hlb.scores(
     #     articles = ["One of the key ideas behind why you use instruction style prompts is that you can steer the model towards what you define as your goal state output, vs what the model, a user, or a different engineer believes it is."],
     #     targets = ["The model is much better than GPT-3 at understanding more complex prompt instructions in zero-shot scenarios."]
-    #     ))   
+    #     ))
 
     # text = "One of the key ideas behind why you use instruction style prompts is that you can steer the model towards what you define as your goal state output, vs what the model, a user, or a different engineer believes it is. For our use case this just means we can use the prompt to help the model better understand what information to include in our summary, what format we want it in, extractive vs abstractive etc. If we were to provide a prompt such as “summary this document” our model doesn’t have much information around what would be a good output for us, and will rely on its idea of what a good output is. The flip to this would be if we provide a prompt such as “Extract exact key information from the provided text in 5 sentences that focuses on xyz”. You can see how we’ve provided a much deeper idea to the model of what a good output is for us (goal state output).GPT-4 is much better than GPT-3 at understanding more complex prompt instructions in zero-shot scenarios, or scenarios where we don’t provide exact input and output examples of the summaries of example documents. We’ll see in examples below that the prompts we can provide can be much more complex, contain multiple steps, have clear guidelines, and much more that GPT-3 simply struggles with. The model is also very good at understanding the idea of pretending to be certain roles, such as a creative writer, an engineer, a student etc. This role play idea is something that we initially weren’t too keen on, as the value add didn’t make much sense over better prompts or prompt examples. Through testing and even integrating it into production we’ve found this role play idea very useful for less experienced prompt engineers or giving the model a more generalized idea of what output goal state we want to steer towards."
 
@@ -291,8 +318,8 @@ if __name__ == '__main__':
     # }
 
     # response = runtime.invoke_endpoint(
-    #     EndpointName='text-summarizer-2023-06-16-15-25-37', 
-    #     Body=json.dumps(prompt), 
+    #     EndpointName='text-summarizer-2023-06-16-15-25-37',
+    #     Body=json.dumps(prompt),
     #     ContentType="application/json"
     # )
 

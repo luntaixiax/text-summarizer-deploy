@@ -1,8 +1,8 @@
-name: build text summarizer model with local serving
+name: build frontend streamlit server with local serving
 on:
   push: # will trigger workflow when push event
     paths:
-      - 'deploy-fastapi/**' # will trigger when push to this path
+      - 'frontend-streamlit/**' # will trigger when push to this path
 
 
 jobs: # define two jobs, CI and CD
@@ -25,18 +25,18 @@ jobs: # define two jobs, CI and CD
         id: ver_tag
         uses: jbutcher5/read-yaml@main  # read yaml prebuilt action
         with:
-          file: './deploy-fastapi/meta.yaml'
+          file: './frontend-streamlit/meta.yaml'
           key-path: '["model", "version-tag"]'
 
       - name: read dockerhub model name
         id: model_nm
         uses: jbutcher5/read-yaml@main  # read yaml prebuilt action
         with:
-          file: './deploy-fastapi/meta.yaml'
+          file: './frontend-streamlit/meta.yaml'
           key-path: '["model", "docker-image-name"]'
       
       - name: Build and push image
-        working-directory: deploy-fastapi
+        working-directory: frontend-streamlit
         run: |
           model_hub_nm = ${{ secrets.DOCKERHUB_USERNAME }}/${{ steps.model_nm.outputs.data }}
           docker build -t ${model_hub_nm}:${{ steps.ver_tag.outputs.data }} .

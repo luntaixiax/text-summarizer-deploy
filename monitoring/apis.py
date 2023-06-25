@@ -36,7 +36,33 @@ ARIZE_CLIENT = Client(
 )
 
 def init_db():
+    import mysql.connector
+    # create database
+    with mysql.connector.connect(
+        host = MYSQL_CONF.ip,
+        port = MYSQL_CONF.port,
+        user = MYSQL_CONF.username,
+        passwd = MYSQL_CONF.password
+    ) as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(f"Create database if not exists {MYSQL_CONF.db}")
+
+    # create tables
     Base.metadata.create_all(MYSQL_CONF.engine)
+
+    # load samples
+    try:
+        samples = pd.read_parquet("sample/summarize_sample.parquet")
+        MYSQL_DB.insert_pd_df(
+            tablename = 'summarize_sample', 
+            df = samples, 
+            schema = 'summarizer'
+        )
+
+    except FileNotFoundError as e:
+        print("Sample file not found: sample/summarize_sample.parquet")
+    except Exception as e:
+        print("Save data failed: " + e)
 
 def get_sample_pair() -> Tuple[str, str]:
     sql = """
