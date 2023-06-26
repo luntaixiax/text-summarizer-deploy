@@ -1,4 +1,4 @@
-# Documentation
+# Project Architecture
 
 ![MLE Project.jpg](images/MLE_Project.jpg)
 
@@ -177,7 +177,7 @@ wait for a few minutes for Airflow to load the DAG, and head over to [localhost8
     you can get one API key from slack API webhook section
     
     <aside>
-    ⚠️ note you need to copy the webhook URL, blue part in the Host field and pink part in the password field! : [https://hooks.slack.com/services/x](https://hooks.slack.com/services/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)xxxxxx
+    ⚠️ note you need to copy the webhook URL, blue part in the Host field and pink part in the password field! : https://hooks.slack.com/services[/x](https://hooks.slack.com/services/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)xxxxxx
     
     </aside>
     
@@ -204,8 +204,9 @@ The model involved will be a text summarizer which highlights the content of an 
 
 ### Tools Involved
 
-| Huggingface | Pretrained transformers and training/testing Dataset |
+| Tool | Functionality |
 | --- | --- |
+| Huggingface | Pretrained transformers and training/testing Dataset |
 | Mlflow | Tracking for model metrics, Versioning and logging |
 | Ray | Distributed Training Engine, need GPU to accelarate |
 
@@ -621,3 +622,16 @@ This part deals with model serving logs, performance logs and UI application. In
 | FastAPI | web server for monitoring API request handler | communicate with MySQL and Arize client |
 | Arize.AI | log and monitor model performance (score metrics) | Arize will calculating embeddings and scores, and presumably send to arize server for dashboarding |
 | Grafana | realtime dashboard for monitoring metrics | will look at performance, traffic, channel and input/output length |
+
+# CI/CD with Github Actions
+
+All components, except sagemaker deployment and batch pipeline part, need to rebuild Docker containers whenever there is a code change. The process is tedious if you do it manually each time. Github Actions can help automate the docker building and pushing jobs. The jobs will be triggered whenever new code is pushed to the master branch of each component.
+
+| Automation pipeline | Descriptive Script | Process | Trigger when push to |
+| --- | --- | --- | --- |
+| build text summarizer model with mlflow | build_deploy_mlflow.yaml | CI | ./deploy-mlflow |
+| text summarizer (hosted by mlflow) backend server with local serving | build_deploy_backend.yaml | CI | ./backend-fastapi |
+| build text summarizer model with local serving | build_deploy_local.yaml | CI | ./deploy-fastapi |
+| build text summarizer model with aws lambda | build_deploy_lambda.yaml | CI/CD | ./deploy-lambda |
+| build frontend streamlit server with local serving | build_deploy_frontend.yaml | CI | ./frontend-streamlit |
+| build monitoring image with local serving | build_monitoring.yaml | CI | ./monitoring |
