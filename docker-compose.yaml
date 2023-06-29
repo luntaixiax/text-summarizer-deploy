@@ -16,28 +16,49 @@ services:
       MODEL_URI: model-mlflow
     depends_on:
       - model-mlflow
-    restart: on-failure
+    healthcheck:
+      test: |
+        python -c "import requests; r = requests.get('http://localhost:5000'); assert r.status_code == 200"
+      interval: 5s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    restart: always
 
   backend-standalone:
     #build: ./deploy-fastapi
     image: luntaixia/cnn-summarizer-local
     ports:
       - 8000:8000
-    restart: on-failure
+    healthcheck:
+      test: |
+        python -c "import requests; r = requests.get('http://localhost:8000'); assert r.status_code == 200"
+      interval: 5s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    restart: always
 
   mysql:
     image: mysql:latest
     volumes:
-      - ${VOLUME_MAPPING_PATH}/mysql-storage:/var/lib/mysql
+      - ${VOLUME_MAPPING_PATH:-./volume-mapping}/mysql-storage:/var/lib/mysql
     environment:
-      - MYSQL_ROOT_PASSWORD=luntaixia
+      - MYSQL_ROOT_USER=${MYSQL_ROOT_USER:-admin}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-admin}
     ports:
       - 3306:3306
     command:
       --character-set-server=utf8mb4
-      --default-authentication-plugin=mysql_native_password
+      --default-authentication-plugin=caching_sha2_password
       --local-infile=1
       --secure-file-priv=""
+    healthcheck:
+      test: mysqladmin ping -h localhost -u $$MYSQL_ROOT_USER --password=$$MYSQL_ROOT_PASSWORD
+      start_period: 5s
+      interval: 5s
+      timeout: 5s
+      retries: 55
 
   monitoring:
     #build: ./monitoring
@@ -48,8 +69,16 @@ services:
     ports:
       - 9020:9020
     depends_on:
-      - mysql
-    restart: on-failure
+      mysql:
+        condition: service_healthy
+    healthcheck:
+      test: |
+        python -c "import requests; r = requests.get('http://localhost:9020'); assert r.status_code == 200"
+      interval: 5s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    restart: always
 
   grafana:
     image: grafana/grafana-oss
@@ -64,7 +93,7 @@ services:
     ports:
       - '3000:3000'
     volumes:
-      - ${VOLUME_MAPPING_PATH}/grafana_data:/var/lib/grafana
+      - ${VOLUME_MAPPING_PATH:-./volume-mapping}/grafana_data:/var/lib/grafana
     command: bash -c "docker login -u user -p password && /run.sh" # fix permission error using root user
     user: "root:root"
 
@@ -76,7 +105,10 @@ services:
     volumes:
       - ./secrets.toml:/app/.streamlit/secrets.toml # for streamlit secrets
     depends_on:
-      - backend-mlflow
-      - backend-standalone
-      - monitoring
+      backend-mlflow:
+        condition: service_healthy
+      backend-standalone:
+        condition: service_healthy
+      monitoring:
+        condition: service_healthy
     restart: on-failure

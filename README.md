@@ -28,9 +28,11 @@ Although not required, it is still recommanded to have
     ![https://storage.googleapis.com/arize-assets/fixtures/copy-keys.png](https://storage.googleapis.com/arize-assets/fixtures/copy-keys.png)
     
 
-## 1. Config the secrets and configuration file
+## 1. Config the project
 
-create a file named `secrets.toml` under the root folder, copy the following content and replace the necessary fields:
+### Set secret file
+
+create a file named `secrets.toml` under the project root folder, copy the following content and replace the necessary fields:
 
 ```toml
 [sagemaker]
@@ -65,6 +67,16 @@ port = 9020
 💡 ***Notes***: It is not mandatory to change the `sagemaker` section, `lamda_endpoint` and `arize` section if you do not have one. Just leave as it is, DO NOT DELETE ANY PART, the only downside is that you will not be able to use the corresponding services (AWS, Arize).
 
 </aside>
+
+### Set env file (Optional)
+
+If you want to change the volume mapping path, in the project root folder, create a file called `.env` and put the following into the file:
+
+```toml
+VOLUME_MAPPING_PATH="YOUR-VOLUME-MAPPING-FOLDER"
+MYSQL_ROOT_USER="YOUR-MYSQL-ROOT-USER"
+MYSQL_ROOT_PASSWORD="YOUR-MYSQL-ROOT-PASSWORD"
+```
 
 ## 2. Start all the services
 
