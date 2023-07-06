@@ -33,7 +33,7 @@ def cnn_daily():
         """
         #### Extract task
         """
-        df = extract(num_articles = 10)
+        df = extract(num_articles = 25)
         return df
     
     @task(multiple_outputs=False)

@@ -37,7 +37,7 @@ def get_req(url:str, params = None) -> requests.Response:
         else:
             print("request code is not 200")
 
-def extract(num_articles: int = 10) -> pd.DataFrame:
+def extract(num_articles: int = 25) -> pd.DataFrame:
     link = 'https://www.cnn.com'
     # Scans the webpage and finds all the links on it.
     page_features = newspaper.build(
@@ -61,11 +61,13 @@ def extract(num_articles: int = 10) -> pd.DataFrame:
                     'title':article.title,
                     'article':article.text,
                     'url': article.url})
-        except:
+                print(f"Successful get {article.title}")
+        except Exception as e:
             # If, for any reason the download fails, continue the loop.
-            print("Article Download Failed.")
+            print("Article Download Failed: " + str(e))
 
     df = pd.DataFrame.from_dict(data)
+    print(df)
     df = df[df['article'].str.len() < 10000]
     return df
 
